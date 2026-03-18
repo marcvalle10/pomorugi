@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+
 import '../models/pomodoro_config.dart';
 import '../models/session_phase.dart';
 import '../models/session_summary.dart';
@@ -45,7 +46,6 @@ class PomodoroController extends ChangeNotifier {
   }
 
   double get sketchRevealProgress {
-    // first 30% = chaos, remaining 70% = reveal drawing
     final p = phaseProgress;
     if (p <= 0.3) return 0;
     return ((p - 0.3) / 0.7).clamp(0, 1);
@@ -75,6 +75,7 @@ class PomodoroController extends ChangeNotifier {
 
   void start() {
     if (_isRunning || _phase == SessionPhase.summary) return;
+
     _ticker?.cancel();
     _isRunning = true;
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
@@ -83,6 +84,7 @@ class PomodoroController extends ChangeNotifier {
 
   void pause() {
     _ticker?.cancel();
+    _ticker = null;
     _isRunning = false;
     notifyListeners();
   }
@@ -95,6 +97,7 @@ class PomodoroController extends ChangeNotifier {
 
   void resetSession() {
     _ticker?.cancel();
+    _ticker = null;
     _phase = SessionPhase.focus;
     _remaining = config.workDuration;
     _phaseTotal = config.workDuration;
@@ -130,6 +133,7 @@ class PomodoroController extends ChangeNotifier {
       _advancePhase();
       return;
     }
+
     _registerCompletedSecond();
     _remaining -= const Duration(seconds: 1);
     notifyListeners();
@@ -149,6 +153,7 @@ class PomodoroController extends ChangeNotifier {
     _isRunning = false;
 
     if (_phase == SessionPhase.focus) {
+      // Si ya terminó el último ciclo, ir directo al resumen.
       if (_currentCycle >= config.totalCycles) {
         _phase = SessionPhase.summary;
         _remaining = Duration.zero;
@@ -158,16 +163,12 @@ class PomodoroController extends ChangeNotifier {
         _remaining = config.breakDuration;
         _phaseTotal = config.breakDuration;
       }
-    } else if (_currentCycle < config.totalCycles) {
+    } else if (_phase == SessionPhase.shortBreak) {
       _currentCycle += 1;
       _phase = SessionPhase.focus;
       _remaining = config.workDuration;
       _phaseTotal = config.workDuration;
       _pattern = SketchGenerator.randomPattern();
-    } else {
-      _phase = SessionPhase.summary;
-      _remaining = Duration.zero;
-      _phaseTotal = Duration.zero;
     }
 
     notifyListeners();

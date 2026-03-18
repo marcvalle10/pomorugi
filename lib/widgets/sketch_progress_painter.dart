@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+
 import '../services/sketch_generator.dart';
 
 class SketchProgressPainter extends CustomPainter {
@@ -17,247 +18,273 @@ class SketchProgressPainter extends CustomPainter {
     required this.pattern,
   });
 
-  static const Color focusPink = Color(0xFFF26076);
-  static const Color progressOrange = Color(0xFFFF9760);
-  static const Color breakBlue = Color(0xFF000B58);
-  static const Color breakTeal = Color(0xFF7DE3D6);
-  static const Color focusBgGuide = Color(0xFFF1C85A);
-  static const Color breakBgGuide = Color(0xFF8CC9B3);
-  static const Color ink = Color(0xFF4A3739);
-
   @override
   void paint(Canvas canvas, Size size) {
-    final center = size.center(Offset.zero);
-    final radius = min(size.width, size.height) / 2 - 24;
-    final ringRect = Rect.fromCircle(center: center, radius: radius);
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = min(size.width, size.height) * 0.39;
 
-    final guide = Paint()
-      ..color = (isBreak ? breakBgGuide : focusBgGuide).withOpacity(0.34)
+    final trackColor = isBreak
+        ? const Color(0xFFAEE8DA).withOpacity(0.45)
+        : const Color(0xFFEBCF7B).withOpacity(0.32);
+
+    final trackPaint = Paint()
+      ..color = trackColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 13
+      ..strokeWidth = 12
       ..strokeCap = StrokeCap.round;
-    canvas.drawArc(ringRect, 0, pi * 2, false, guide);
 
-    _paintDecorations(canvas, center, radius);
-    _paintBodySegments(canvas, center, radius, progress);
-    _paintHead(canvas, center, radius, progress);
-    _paintSketch(canvas, Rect.fromCircle(center: center, radius: radius - 30));
+    canvas.drawCircle(center, radius, trackPaint);
+
+    _drawChaos(canvas, size, center, radius);
+    _drawSketch(canvas, size);
+    _drawCaterpillar(canvas, center, radius);
   }
 
-  void _paintBodySegments(Canvas canvas, Offset center, double radius, double progress) {
-    final segmentSpacing = 0.162;
-    final baseSegmentSize = isBreak ? 15.6 : 17.0;
-    final maxSegments = 34;
-    final bodySegments = (progress * maxSegments).floor().clamp(0, maxSegments);
-    final headAngle = -pi / 2 + (pi * 2 * progress);
+  void _drawChaos(Canvas canvas, Size size, Offset center, double radius) {
+    if (chaosVisibility <= 0) return;
 
-    for (int i = 0; i < bodySegments; i++) {
-      final angle = headAngle - ((i + 1) * segmentSpacing);
-      final offset = Offset(
+    final chaosPaint = Paint()
+      ..color = const Color(0xFF5C5148).withOpacity(0.10 * chaosVisibility)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final random = Random(pattern.type.index * 97 + 11);
+
+    for (int i = 0; i < 14; i++) {
+      final p = Path();
+
+      final startAngle = random.nextDouble() * pi * 2;
+      final startRadius = radius * (0.15 + random.nextDouble() * 0.55);
+      final start = Offset(
+        center.dx + cos(startAngle) * startRadius,
+        center.dy + sin(startAngle) * startRadius,
+      );
+
+      p.moveTo(start.dx, start.dy);
+
+      final segments = 2 + random.nextInt(3);
+      Offset current = start;
+
+      for (int j = 0; j < segments; j++) {
+        final angle = random.nextDouble() * pi * 2;
+        final length = 24 + random.nextDouble() * 42;
+
+        current = Offset(
+          current.dx + cos(angle) * length,
+          current.dy + sin(angle) * length,
+        );
+
+        p.lineTo(current.dx, current.dy);
+      }
+
+      canvas.drawPath(p, chaosPaint);
+    }
+  }
+
+  void _drawSketch(Canvas canvas, Size size) {
+    final reveal = Curves.easeOutCubic.transform(sketchReveal.clamp(0.0, 1.0));
+    if (reveal <= 0) return;
+
+    final sketchPaint = Paint()
+      ..color = const Color(0xFF4A3739).withOpacity(0.26)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    SketchGenerator.drawPattern(canvas, size, sketchPaint, pattern, reveal);
+  }
+
+  void _drawCaterpillar(Canvas canvas, Offset center, double radius) {
+    final easedProgress = Curves.easeInOutCubic.transform(
+      progress.clamp(0.0, 1.0),
+    );
+
+    final headAngle = -pi / 2 + (pi * 2 * easedProgress);
+
+    final maxSegments = 36;
+    final bodySegments = max(0, (maxSegments * easedProgress).round());
+
+    final segmentSpacing = 0.165;
+    final segmentWidth = radius * 0.13;
+    final segmentHeight = radius * 0.085;
+
+    final bodyBaseColor = isBreak
+        ? const Color(0xFF9DEFE6)
+        : const Color(0xFFF47E8E);
+
+    final bodyAccentColor = isBreak
+        ? const Color(0xFFCFFAF4)
+        : const Color(0xFFFFB07A);
+
+    final outline = const Color(0xFF5A4647);
+
+    for (int i = bodySegments; i >= 1; i--) {
+      final t = i / maxSegments;
+      final angle = headAngle - (i * segmentSpacing);
+
+      final pos = Offset(
         center.dx + cos(angle) * radius,
         center.dy + sin(angle) * radius,
       );
 
-      final taper = (1 - (i / max(1, bodySegments))).clamp(0.0, 1.0);
-      final wobble = sin(i * 0.55 + progress * pi * 4) * 0.45;
-      final width = baseSegmentSize + 5.8 * taper;
-      final height = baseSegmentSize - 0.9 + (1.7 * taper) + wobble;
+      final rotation = angle + pi / 2;
+      final colorLerp = (0.25 + 0.75 * (1 - t)).clamp(0.0, 1.0);
+      final fillColor = Color.lerp(bodyAccentColor, bodyBaseColor, colorLerp)!;
 
-      final color = Color.lerp(
-            isBreak ? breakTeal : focusPink,
-            isBreak ? const Color(0xFFA9EFE6) : progressOrange,
-            i / max(1, bodySegments),
-          ) ??
-          (isBreak ? breakTeal : focusPink);
-
-      final fill = Paint()..color = color;
-      final outline = Paint()
-        ..color = ink.withOpacity(0.86)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.8;
-      final shadow = Paint()
-        ..color = Colors.black.withOpacity(0.08)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.4);
-
-      canvas.save();
-      canvas.translate(offset.dx, offset.dy);
-      canvas.rotate(angle + pi / 2 + wobble * 0.02);
-
-      final segmentRect = Rect.fromCenter(
-        center: Offset.zero,
-        width: width,
-        height: height,
+      _drawSegment(
+        canvas,
+        pos,
+        rotation,
+        segmentWidth,
+        segmentHeight,
+        fillColor,
+        outline,
       );
-      final segment = RRect.fromRectAndRadius(segmentRect, const Radius.circular(50));
-      canvas.drawRRect(segment.shift(const Offset(0, 1.2)), shadow);
-      canvas.drawRRect(segment, fill);
-      canvas.drawRRect(segment, outline);
-
-      final highlight = Paint()..color = Colors.white.withOpacity(0.16);
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: Offset(-width * 0.1, -height * 0.05),
-          width: width * 0.34,
-          height: height * 0.28,
-        ),
-        highlight,
-      );
-
-      if (i < bodySegments - 1) {
-        final connector = Paint()
-          ..color = color.withOpacity(0.72)
-          ..style = PaintingStyle.fill;
-        canvas.drawOval(
-          Rect.fromCenter(
-            center: Offset(0, height * 0.5 + 1.0),
-            width: width * 0.34,
-            height: height * 0.22,
-          ),
-          connector,
-        );
-      }
-
-      canvas.restore();
     }
+
+    final headCenter = Offset(
+      center.dx + cos(headAngle) * radius,
+      center.dy + sin(headAngle) * radius,
+    );
+
+    _drawHead(
+      canvas,
+      headCenter,
+      headAngle + pi / 2,
+      radius * 0.17,
+      isBreak ? const Color(0xFF9DEFE6) : const Color(0xFFF0627E),
+      outline,
+    );
   }
 
-  void _paintHead(Canvas canvas, Offset center, double radius, double progress) {
-    final angle = -pi / 2 + (pi * 2 * progress);
-    final headCenter = Offset(
-      center.dx + cos(angle) * radius,
-      center.dy + sin(angle) * radius,
-    );
-    final headColor = isBreak ? const Color(0xFF9EF4E7) : focusPink;
-
+  void _drawSegment(
+    Canvas canvas,
+    Offset center,
+    double rotation,
+    double width,
+    double height,
+    Color fill,
+    Color outline,
+  ) {
     canvas.save();
-    canvas.translate(headCenter.dx, headCenter.dy);
-    canvas.rotate(angle + pi / 2);
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(rotation);
 
-    final headRect = Rect.fromCenter(center: Offset.zero, width: 42, height: 42);
-    final fill = Paint()..color = headColor;
-    final outline = Paint()
-      ..color = ink
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2;
-
-    canvas.drawOval(headRect, fill);
-    canvas.drawOval(headRect, outline);
-
-    final cheek = Paint()..color = Colors.white.withOpacity(0.18);
-    canvas.drawCircle(const Offset(-6, 8), 3.2, cheek);
-    canvas.drawCircle(const Offset(6, 8), 3.2, cheek);
-
-    final antenna = Paint()
-      ..color = ink
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(const Offset(-10, -16), const Offset(-14, -29), antenna);
-    canvas.drawLine(const Offset(10, -16), const Offset(14, -29), antenna);
-
-    final eye = Paint()..color = ink;
-    canvas.drawCircle(const Offset(-6, -2), 2.4, eye);
-    canvas.drawCircle(const Offset(6, -2), 2.4, eye);
-
-    final smile = Path()
-      ..moveTo(-8, 8)
-      ..quadraticBezierTo(0, 14, 8, 8);
-    canvas.drawPath(
-      smile,
-      Paint()
-        ..color = ink
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..strokeCap = StrokeCap.round,
+    final rect = Rect.fromCenter(
+      center: Offset.zero,
+      width: width,
+      height: height,
     );
+
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(height * 0.7));
+
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.08)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.5);
+
+    canvas.drawRRect(rrect.shift(const Offset(1.2, 1.4)), shadowPaint);
+
+    final fillPaint = Paint()..color = fill;
+    canvas.drawRRect(rrect, fillPaint);
+
+    final stripeRect = Rect.fromCenter(
+      center: Offset(0, 0),
+      width: width * 0.42,
+      height: height * 0.58,
+    );
+
+    final stripe = RRect.fromRectAndRadius(
+      stripeRect,
+      Radius.circular(height * 0.45),
+    );
+
+    final stripePaint = Paint()..color = Colors.white.withOpacity(0.18);
+    canvas.drawRRect(stripe, stripePaint);
+
+    final outlinePaint = Paint()
+      ..color = outline
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8;
+
+    canvas.drawRRect(rrect, outlinePaint);
 
     canvas.restore();
   }
 
-  void _paintDecorations(Canvas canvas, Offset center, double radius) {
-    final decor = Paint()
-      ..color = ink.withOpacity(0.06)
+  void _drawHead(
+    Canvas canvas,
+    Offset center,
+    double rotation,
+    double radius,
+    Color fill,
+    Color outline,
+  ) {
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(rotation);
+
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.10)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+
+    canvas.drawCircle(const Offset(1.5, 2), radius, shadowPaint);
+
+    final fillPaint = Paint()..color = fill;
+    canvas.drawCircle(Offset.zero, radius, fillPaint);
+
+    final highlightPaint = Paint()..color = Colors.white.withOpacity(0.18);
+    canvas.drawCircle(
+      Offset(-radius * 0.25, -radius * 0.22),
+      radius * 0.38,
+      highlightPaint,
+    );
+
+    final outlinePaint = Paint()
+      ..color = outline
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2
+      ..strokeWidth = 2.0;
+
+    canvas.drawCircle(Offset.zero, radius, outlinePaint);
+
+    final facePaint = Paint()
+      ..color = outline
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
       ..strokeCap = StrokeCap.round;
 
-    final star = Path()
-      ..moveTo(center.dx - radius * 0.82, center.dy - radius * 0.18)
-      ..lineTo(center.dx - radius * 0.70, center.dy - radius * 0.26)
-      ..lineTo(center.dx - radius * 0.60, center.dy - radius * 0.14)
-      ..lineTo(center.dx - radius * 0.74, center.dy - radius * 0.10)
-      ..close();
-    canvas.drawPath(star, decor);
+    canvas.drawCircle(
+      Offset(-radius * 0.28, -radius * 0.10),
+      radius * 0.06,
+      Paint()..color = outline,
+    );
+    canvas.drawCircle(
+      Offset(radius * 0.22, -radius * 0.08),
+      radius * 0.06,
+      Paint()..color = outline,
+    );
 
-    final swirl = Path()
-      ..moveTo(center.dx + radius * 0.62, center.dy - radius * 0.08)
-      ..quadraticBezierTo(center.dx + radius * 0.80, center.dy - radius * 0.22, center.dx + radius * 0.84, center.dy - radius * 0.02)
-      ..quadraticBezierTo(center.dx + radius * 0.84, center.dy + radius * 0.16, center.dx + radius * 0.66, center.dy + radius * 0.12)
-      ..quadraticBezierTo(center.dx + radius * 0.58, center.dy + radius * 0.08, center.dx + radius * 0.62, center.dy - radius * 0.01);
-    canvas.drawPath(swirl, decor);
+    final smile = Path()
+      ..moveTo(-radius * 0.24, radius * 0.18)
+      ..quadraticBezierTo(0, radius * 0.38, radius * 0.26, radius * 0.16);
 
-    final diamond = Path()
-      ..moveTo(center.dx + radius * 0.32, center.dy + radius * 0.60)
-      ..lineTo(center.dx + radius * 0.46, center.dy + radius * 0.70)
-      ..lineTo(center.dx + radius * 0.33, center.dy + radius * 0.80)
-      ..lineTo(center.dx + radius * 0.20, center.dy + radius * 0.70)
-      ..close();
-    canvas.drawPath(diamond, decor);
+    canvas.drawPath(smile, facePaint);
 
     canvas.drawLine(
-      Offset(center.dx - radius * 0.98, center.dy + radius * 0.70),
-      Offset(center.dx - radius * 0.88, center.dy + radius * 0.78),
-      decor,
+      Offset(-radius * 0.18, -radius * 0.85),
+      Offset(-radius * 0.28, -radius * 1.38),
+      facePaint,
     );
     canvas.drawLine(
-      Offset(center.dx - radius * 0.88, center.dy + radius * 0.70),
-      Offset(center.dx - radius * 0.98, center.dy + radius * 0.78),
-      decor,
+      Offset(radius * 0.18, -radius * 0.85),
+      Offset(radius * 0.34, -radius * 1.30),
+      facePaint,
     );
+
+    canvas.restore();
   }
-
-  void _paintSketch(Canvas canvas, Rect rect) {
-    final chaosPaint = Paint()
-      ..color = ink.withOpacity(0.18 * chaosVisibility)
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    for (final stroke in pattern.chaosStrokes) {
-      chaosPaint.strokeWidth = stroke.width;
-      final path = _strokePath(stroke, rect, 1);
-      canvas.drawPath(path, chaosPaint);
-    }
-
-    final revealCount =
-        (pattern.guideStrokes.length * sketchReveal).ceil().clamp(0, pattern.guideStrokes.length);
-    final revealPaint = Paint()
-      ..color = ink.withOpacity(0.75)
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    for (int i = 0; i < revealCount; i++) {
-      final stroke = pattern.guideStrokes[i];
-      revealPaint.strokeWidth = stroke.width;
-      final localFraction = (sketchReveal * pattern.guideStrokes.length) - i;
-      final path = _strokePath(stroke, rect, localFraction.clamp(0, 1));
-      canvas.drawPath(path, revealPaint);
-    }
-  }
-
-  Path _strokePath(SketchStroke stroke, Rect rect, double fraction) {
-    final pts = stroke.points;
-    if (pts.isEmpty) return Path();
-    final maxPoints = (pts.length * fraction).ceil().clamp(1, pts.length);
-    final path = Path();
-    final first = _map(pts.first, rect);
-    path.moveTo(first.dx, first.dy);
-    for (int i = 1; i < maxPoints; i++) {
-      final p = _map(pts[i], rect);
-      path.lineTo(p.dx, p.dy);
-    }
-    return path;
-  }
-
-  Offset _map(Offset unit, Rect rect) => Offset(rect.left + unit.dx * rect.width, rect.top + unit.dy * rect.height);
 
   @override
   bool shouldRepaint(covariant SketchProgressPainter oldDelegate) {

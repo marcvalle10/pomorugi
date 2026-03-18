@@ -23,12 +23,15 @@ class TimerScreen extends StatefulWidget {
 class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   String breakMessage = 'Buen trabajo. Tómate un respiro.';
   PomodoroController? _controller;
+
   bool _manualPause = false;
-  SessionPhase? _lastPhase;
   bool _appInBackground = false;
+  bool _navigatingToSummary = false;
+
+  SessionPhase? _lastPhase;
+
   Timer? _pauseReminderTimer;
   int _pauseReminderCount = 0;
-  bool _navigatingToSummary = false;
 
   @override
   void initState() {
@@ -41,15 +44,20 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     super.didChangeDependencies();
 
     final controller = context.read<PomodoroController>();
+
     if (_controller != controller) {
       _controller?.removeListener(_onControllerUpdate);
       _controller = controller;
       _controller!.addListener(_onControllerUpdate);
+
       _lastPhase = _controller!.phase;
+      _navigatingToSummary = false;
+
       if (!_controller!.isRunning &&
           _controller!.phase != SessionPhase.summary) {
         _controller!.start();
       }
+
       _syncStatusNotification();
     }
   }
@@ -59,10 +67,11 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     _appInBackground =
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive;
+
     _syncStatusNotification();
   }
 
-  Future<void> _onControllerUpdate() async {
+  void _onControllerUpdate() {
     if (!mounted || _controller == null) return;
 
     final controller = _controller!;
@@ -77,7 +86,8 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     }
 
     if (phaseChanged) {
-      await _handlePhaseTransition(_lastPhase, currentPhase);
+      _handlePhaseTransition(_lastPhase, currentPhase);
+
       if (currentPhase == SessionPhase.shortBreak) {
         breakMessage = controller.randomBreakMessage();
       }
@@ -88,17 +98,16 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
       _navigatingToSummary = true;
 
       _cancelPauseReminderLoop();
-      await NotificationService.instance.cancelStatus();
-      await NotificationService.instance.cancelPauseReminder();
-      await NotificationService.instance.showSessionComplete(
+      NotificationService.instance.cancelStatus();
+      NotificationService.instance.cancelPauseReminder();
+      NotificationService.instance.showSessionComplete(
         body:
             'Completaste ${controller.config.totalCycles} ciclos. Toca para ver tu resumen.',
       );
 
-      if (!mounted) return;
-
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+        if (!mounted || _controller == null) return;
+
         Navigator.of(context).pushReplacementNamed(
           SummaryScreen.routeName,
           arguments: controller.buildSummary(),
@@ -107,11 +116,13 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
       return;
     }
 
-    setState(() {
-      _lastPhase = currentPhase;
-    });
+    _lastPhase = currentPhase;
 
-    await _syncStatusNotification();
+    if (mounted) {
+      setState(() {});
+    }
+
+    _syncStatusNotification();
 
     if (phaseChanged && !controller.isRunning && !_manualPause) {
       Future.delayed(const Duration(milliseconds: 700), () {
@@ -125,14 +136,14 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _handlePhaseTransition(
+  void _handlePhaseTransition(
     SessionPhase? previousPhase,
     SessionPhase currentPhase,
-  ) async {
+  ) {
     if (_controller == null) return;
 
     if (currentPhase == SessionPhase.shortBreak) {
-      await NotificationService.instance.showTransition(
+      NotificationService.instance.showTransition(
         title: 'Tiempo de descansar',
         body: 'Terminaste el bloque de enfoque. Ahora toca una pausa corta.',
       );
@@ -141,7 +152,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
 
     if (previousPhase == SessionPhase.shortBreak &&
         currentPhase == SessionPhase.focus) {
-      await NotificationService.instance.showTransition(
+      NotificationService.instance.showTransition(
         title: 'De vuelta al enfoque',
         body: 'Se terminó el descanso. Arranca el siguiente ciclo.',
       );
@@ -150,31 +161,38 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
 
   void _ensurePauseReminderLoop() {
     if (_pauseReminderTimer != null) return;
+
     _pauseReminderCount = 0;
     _schedulePauseReminder(const Duration(minutes: 3));
   }
 
   void _schedulePauseReminder(Duration delay) {
     _pauseReminderTimer?.cancel();
-    _pauseReminderTimer = Timer(delay, () async {
+
+    _pauseReminderTimer = Timer(delay, () {
       if (!mounted ||
           _controller == null ||
           !_manualPause ||
-          _controller!.isRunning) {
+          _controller!.isRunning ||
+          _controller!.phase == SessionPhase.summary) {
         _pauseReminderTimer?.cancel();
         _pauseReminderTimer = null;
         return;
       }
 
       _pauseReminderCount += 1;
+
       final minutesPaused = _pauseReminderCount == 1
           ? 3
           : 3 + ((_pauseReminderCount - 1) * 6);
+
       final body = _pauseReminderCount == 1
           ? '¿No piensas volver? La sesión sigue pausada desde hace 3 minutos.'
           : 'Sigues en pausa desde hace $minutesPaused minutos. PomoRugi empieza a sospechar abandono.';
-      await NotificationService.instance.showPauseReminder(body: body);
-      await _syncStatusNotification();
+
+      NotificationService.instance.showPauseReminder(body: body);
+      _syncStatusNotification();
+
       _schedulePauseReminder(const Duration(minutes: 6));
     });
   }
@@ -188,15 +206,18 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
 
   Future<void> _syncStatusNotification() async {
     if (_controller == null) return;
+
     if (!_appInBackground || _controller!.phase == SessionPhase.summary) {
       await NotificationService.instance.cancelStatus();
       return;
     }
 
     final isBreak = _controller!.phase == SessionPhase.shortBreak;
+
     final title = _manualPause || !_controller!.isRunning
         ? 'PomoRugi en pausa'
         : (isBreak ? 'Descanso en curso' : 'Enfoque en curso');
+
     final body = _manualPause || !_controller!.isRunning
         ? 'Quedan ${_controller!.formattedRemaining}. Toca para volver y continuar.'
         : 'Quedan ${_controller!.formattedRemaining}. Ciclo ${_controller!.currentCycle} de ${_controller!.config.totalCycles}.';
@@ -221,6 +242,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final c = context.watch<PomodoroController>();
     final isBreak = c.phase == SessionPhase.shortBreak;
+
     final bg = isBreak ? const Color(0xFF458B73) : const Color(0xFFFFD150);
     final ink = isBreak ? const Color(0xFF000B58) : const Color(0xFF4A3739);
     final titleColor = isBreak ? Colors.white : const Color(0xFFF26076);
@@ -346,16 +368,21 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
                           fill: Colors.white.withOpacity(isBreak ? 0.9 : 0.92),
                           ink: ink,
                           onTap: () {
-                            setState(() {
-                              _manualPause = c.isRunning;
-                            });
-                            c.toggle();
                             if (c.isRunning) {
-                              _cancelPauseReminderLoop();
-                            } else if (_manualPause) {
+                              _manualPause = true;
+                              c.pause();
                               _ensurePauseReminderLoop();
+                            } else {
+                              _manualPause = false;
+                              _cancelPauseReminderLoop();
+                              c.start();
                             }
+
                             _syncStatusNotification();
+
+                            if (mounted) {
+                              setState(() {});
+                            }
                           },
                         ),
                       ),
@@ -442,6 +469,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
 
   Future<void> _confirmExit() async {
     final controller = context.read<PomodoroController>();
+
     _manualPause = true;
     controller.pause();
     _ensurePauseReminderLoop();
@@ -483,6 +511,9 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
       _cancelPauseReminderLoop();
       controller.start();
       await _syncStatusNotification();
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 }

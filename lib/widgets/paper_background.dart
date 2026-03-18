@@ -1,174 +1,426 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 class PaperBackground extends StatelessWidget {
   final Widget child;
   final Color backgroundColor;
   final bool notebookLines;
-  final bool dotted;
   final bool leaves;
 
   const PaperBackground({
     super.key,
     required this.child,
-    this.backgroundColor = const Color(0xFFFFD150),
-    this.notebookLines = true,
-    this.dotted = false,
+    this.backgroundColor = const Color(0xFFFAF4DD),
+    this.notebookLines = false,
     this.leaves = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(color: backgroundColor),
-      child: CustomPaint(
-        painter: _PaperPainter(
-          notebookLines: notebookLines,
-          dotted: dotted,
-          leaves: leaves,
-          backgroundColor: backgroundColor,
-        ),
-        child: child,
+    return CustomPaint(
+      painter: _PaperBackgroundPainter(
+        backgroundColor: backgroundColor,
+        notebookLines: notebookLines,
+        leaves: leaves,
       ),
+      child: child,
     );
   }
 }
 
-class _PaperPainter extends CustomPainter {
-  final bool notebookLines;
-  final bool dotted;
-  final bool leaves;
+class _PaperBackgroundPainter extends CustomPainter {
   final Color backgroundColor;
+  final bool notebookLines;
+  final bool leaves;
 
-  const _PaperPainter({
-    required this.notebookLines,
-    required this.dotted,
-    required this.leaves,
+  _PaperBackgroundPainter({
     required this.backgroundColor,
+    required this.notebookLines,
+    required this.leaves,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    _drawBase(canvas, size);
+    _drawPaperTexture(canvas, size);
+
     if (notebookLines) {
-      final linePaint = Paint()
-        ..color = const Color(0xFF6B5F46).withOpacity(0.08)
-        ..strokeWidth = 1;
-      const gap = 34.0;
-      for (double y = 24; y < size.height; y += gap) {
-        canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
-      }
+      _drawNotebookLines(canvas, size);
+      _drawMarginBand(canvas, size);
+    } else {
+      _drawDottedGrid(canvas, size);
+      _drawMarginBand(canvas, size, opacity: 0.18);
     }
 
-    if (dotted) {
-      final dotPaint = Paint()..color = const Color(0xFF1C140D).withOpacity(0.10);
-      for (double x = 18; x < size.width; x += 22) {
-        for (double y = 18; y < size.height; y += 22) {
-          canvas.drawCircle(Offset(x, y), 1.2, dotPaint);
-        }
+    _drawThemedDoodles(canvas, size);
+  }
+
+  void _drawBase(Canvas canvas, Size size) {
+    final bgPaint = Paint()..color = backgroundColor;
+    canvas.drawRect(Offset.zero & size, bgPaint);
+  }
+
+  void _drawPaperTexture(Canvas canvas, Size size) {
+    final texturePaint = Paint()
+      ..color = Colors.white.withOpacity(0.035)
+      ..style = PaintingStyle.fill;
+
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.02)
+      ..style = PaintingStyle.fill;
+
+    final random = Random(21);
+
+    for (int i = 0; i < 110; i++) {
+      final x = random.nextDouble() * size.width;
+      final y = random.nextDouble() * size.height;
+      final w = 18 + random.nextDouble() * 36;
+      final h = 8 + random.nextDouble() * 18;
+
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset(x, y), width: w, height: h),
+        i.isEven ? texturePaint : shadowPaint,
+      );
+    }
+  }
+
+  void _drawNotebookLines(Canvas canvas, Size size) {
+    final linePaint = Paint()
+      ..color = const Color(0xFF8A7A62).withOpacity(0.14)
+      ..strokeWidth = 1.0;
+
+    const spacing = 58.0;
+    for (double y = 18; y < size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+    }
+  }
+
+  void _drawDottedGrid(Canvas canvas, Size size) {
+    final dotPaint = Paint()
+      ..color = const Color(0xFF8E816A).withOpacity(0.16)
+      ..style = PaintingStyle.fill;
+
+    const spacing = 22.0;
+    for (double y = 12; y < size.height; y += spacing) {
+      for (double x = 12; x < size.width; x += spacing) {
+        canvas.drawCircle(Offset(x, y), 1.15, dotPaint);
       }
     }
+  }
 
-    final wrinklePaint = Paint()
-      ..color = Colors.black.withOpacity(0.025)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 10;
-    final path = Path()
-      ..moveTo(size.width * .12, 0)
-      ..quadraticBezierTo(size.width * .16, size.height * .18, size.width * .14, size.height * .35)
-      ..quadraticBezierTo(size.width * .12, size.height * .55, size.width * .18, size.height);
-    canvas.drawPath(path, wrinklePaint);
+  void _drawMarginBand(Canvas canvas, Size size, {double opacity = 0.24}) {
+    final bandPaint = Paint()
+      ..color = const Color(0xFFB9A786).withOpacity(opacity);
 
-    final edgePaint = Paint()
-      ..color = Colors.white.withOpacity(0.06)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    canvas.drawLine(Offset(size.width * .15, 0), Offset(size.width * .15, size.height), edgePaint);
+    canvas.drawRect(Rect.fromLTWH(34, 0, 6, size.height), bandPaint);
+  }
 
-    final doodlePaint = Paint()
-      ..color = Colors.black.withOpacity(0.045)
+  void _drawThemedDoodles(Canvas canvas, Size size) {
+    final stroke = Paint()
+      ..color = leaves
+          ? Colors.white.withOpacity(0.12)
+          : const Color(0xFF7D6F60).withOpacity(0.12)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round;
-    final doodle = Path()
-      ..moveTo(size.width * .86, size.height * .12)
-      ..quadraticBezierTo(size.width * .91, size.height * .09, size.width * .94, size.height * .14)
-      ..moveTo(size.width * .90, size.height * .08)
-      ..lineTo(size.width * .90, size.height * .18)
-      ..moveTo(size.width * .85, size.height * .13)
-      ..lineTo(size.width * .95, size.height * .13)
-      ..moveTo(size.width * .08, size.height * .78)
-      ..quadraticBezierTo(size.width * .11, size.height * .76, size.width * .13, size.height * .81)
-      ..moveTo(size.width * .10, size.height * .74)
-      ..lineTo(size.width * .10, size.height * .84)
-      ..moveTo(size.width * .22, size.height * .22)
-      ..lineTo(size.width * .25, size.height * .22)
-      ..moveTo(size.width * .235, size.height * .205)
-      ..lineTo(size.width * .235, size.height * .235)
-      ..moveTo(size.width * .72, size.height * .26)
-      ..lineTo(size.width * .76, size.height * .30)
-      ..lineTo(size.width * .72, size.height * .34)
-      ..lineTo(size.width * .68, size.height * .30)
-      ..close()
-      ..moveTo(size.width * .76, size.height * .70)
-      ..quadraticBezierTo(size.width * .79, size.height * .67, size.width * .83, size.height * .70)
-      ..quadraticBezierTo(size.width * .79, size.height * .73, size.width * .76, size.height * .70)
-      ..moveTo(size.width * .14, size.height * .58)
-      ..quadraticBezierTo(size.width * .18, size.height * .54, size.width * .21, size.height * .58)
-      ..quadraticBezierTo(size.width * .18, size.height * .62, size.width * .14, size.height * .58);
-    canvas.drawPath(doodle, doodlePaint);
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final accent = Paint()
+      ..color = leaves
+          ? Colors.white.withOpacity(0.08)
+          : const Color(0xFF6A5B4B).withOpacity(0.08)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final softFill = Paint()
+      ..color = leaves
+          ? Colors.white.withOpacity(0.07)
+          : const Color(0xFFF4D97D).withOpacity(0.10)
+      ..style = PaintingStyle.fill;
+
+    // Distribución manual para que no se amontonen.
+    _drawSun(canvas, Offset(size.width - 54, 120), 28, stroke);
+    _drawDiamond(canvas, Offset(size.width - 68, 300), 26, accent);
+    _drawSmallCross(canvas, Offset(86, 208), 12, accent);
+    _drawSmallCross(
+      canvas,
+      Offset(size.width * 0.28, size.height * 0.22),
+      10,
+      accent,
+    );
+    _drawSmallCross(
+      canvas,
+      Offset(size.width * 0.72, size.height * 0.78),
+      10,
+      accent,
+    );
+
+    _drawLeaf(canvas, Offset(56, size.height * 0.34), 34, stroke, softFill);
+    _drawLeaf(
+      canvas,
+      Offset(size.width - 52, size.height * 0.28),
+      30,
+      stroke,
+      softFill,
+    );
+    _drawLeaf(canvas, Offset(72, size.height * 0.74), 26, accent, softFill);
+
+    _drawButterfly(
+      canvas,
+      Offset(size.width * 0.18, size.height * 0.86),
+      24,
+      accent,
+    );
+    _drawSpiral(
+      canvas,
+      Offset(size.width * 0.78, size.height * 0.48),
+      18,
+      accent,
+    );
+    _drawFlower(
+      canvas,
+      Offset(size.width * 0.22, size.height * 0.48),
+      20,
+      accent,
+    );
+    _drawMountain(
+      canvas,
+      Offset(size.width * 0.78, size.height * 0.12),
+      30,
+      accent,
+    );
+
+    _drawTinyDiamond(
+      canvas,
+      Offset(size.width * 0.14, size.height * 0.46),
+      9,
+      accent,
+    );
+    _drawTinyDiamond(
+      canvas,
+      Offset(size.width * 0.82, size.height * 0.66),
+      10,
+      accent,
+    );
+
+    _drawShortLine(
+      canvas,
+      Offset(size.width * 0.22, size.height * 0.60),
+      34,
+      accent,
+    );
+    _drawShortLine(
+      canvas,
+      Offset(size.width * 0.62, size.height * 0.32),
+      28,
+      accent,
+    );
+    _drawShortLine(
+      canvas,
+      Offset(size.width * 0.12, size.height * 0.84),
+      24,
+      accent,
+    );
 
     if (leaves) {
-      final leafPaint = Paint()
-        ..color = const Color(0xFFF8FAFC).withOpacity(0.15)
-        ..style = PaintingStyle.fill;
-      _leaf(canvas, Offset(size.width * .12, size.height * .28), 32, -0.5, leafPaint);
-      _leaf(canvas, Offset(size.width * .82, size.height * .18), 26, 0.4, leafPaint);
-      _leaf(canvas, Offset(size.width * .18, size.height * .82), 24, 0.7, leafPaint);
-      _leaf(canvas, Offset(size.width * .82, size.height * .78), 34, -0.8, leafPaint);
-      _lotus(canvas, Offset(size.width * .10, size.height * .18), 16, leafPaint);
+      _drawBotanicalSprout(canvas, Offset(46, 184), 24, stroke);
+      _drawBotanicalSprout(
+        canvas,
+        Offset(size.width - 58, size.height - 160),
+        22,
+        accent,
+      );
+    } else {
+      _drawStar(canvas, Offset(96, size.height * 0.40), 16, accent);
+      _drawStar(canvas, Offset(size.width - 82, 188), 14, accent);
     }
   }
 
-  void _leaf(Canvas canvas, Offset center, double size, double rotation, Paint paint) {
-    canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(rotation);
-    final path = Path()
-      ..moveTo(0, -size)
-      ..quadraticBezierTo(size * 0.95, -size * 0.2, 0, size)
-      ..quadraticBezierTo(-size * 0.95, -size * 0.2, 0, -size)
-      ..close();
-    canvas.drawPath(path, paint);
-    canvas.restore();
+  void _drawSun(Canvas canvas, Offset c, double r, Paint paint) {
+    canvas.drawCircle(c, r * 0.78, paint);
+    for (int i = 0; i < 8; i++) {
+      final a = (pi * 2 / 8) * i;
+      final p1 = Offset(c.dx + cos(a) * (r + 6), c.dy + sin(a) * (r + 6));
+      final p2 = Offset(c.dx + cos(a) * (r + 16), c.dy + sin(a) * (r + 16));
+      canvas.drawLine(p1, p2, paint);
+    }
   }
 
-  void _lotus(Canvas canvas, Offset center, double size, Paint paint) {
-    final stroke = Paint()
-      ..color = paint.color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
-    final left = Path()
-      ..moveTo(center.dx, center.dy)
-      ..quadraticBezierTo(center.dx - size, center.dy - size * .8, center.dx - size * .55, center.dy - size * 1.6)
-      ..quadraticBezierTo(center.dx - size * .15, center.dy - size * .9, center.dx, center.dy);
-    final right = Path()
-      ..moveTo(center.dx, center.dy)
-      ..quadraticBezierTo(center.dx + size, center.dy - size * .8, center.dx + size * .55, center.dy - size * 1.6)
-      ..quadraticBezierTo(center.dx + size * .15, center.dy - size * .9, center.dx, center.dy);
-    final centerPetal = Path()
-      ..moveTo(center.dx, center.dy - size * .2)
-      ..quadraticBezierTo(center.dx, center.dy - size * 1.9, center.dx + size * .45, center.dy - size)
-      ..quadraticBezierTo(center.dx, center.dy - size * .85, center.dx - size * .45, center.dy - size)
-      ..quadraticBezierTo(center.dx, center.dy - size * 1.9, center.dx, center.dy - size * .2);
-    canvas.drawPath(left, stroke);
-    canvas.drawPath(right, stroke);
-    canvas.drawPath(centerPetal, stroke);
-    canvas.drawLine(Offset(center.dx - size * .8, center.dy + 2), Offset(center.dx + size * .8, center.dy + 2), stroke);
+  void _drawDiamond(Canvas canvas, Offset c, double s, Paint paint) {
+    final path = Path()
+      ..moveTo(c.dx, c.dy - s)
+      ..lineTo(c.dx + s * 0.7, c.dy)
+      ..lineTo(c.dx, c.dy + s)
+      ..lineTo(c.dx - s * 0.7, c.dy)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawTinyDiamond(Canvas canvas, Offset c, double s, Paint paint) {
+    final path = Path()
+      ..moveTo(c.dx, c.dy - s)
+      ..lineTo(c.dx + s, c.dy)
+      ..lineTo(c.dx, c.dy + s)
+      ..lineTo(c.dx - s, c.dy)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawSmallCross(Canvas canvas, Offset c, double s, Paint paint) {
+    canvas.drawLine(Offset(c.dx - s, c.dy), Offset(c.dx + s, c.dy), paint);
+    canvas.drawLine(Offset(c.dx, c.dy - s), Offset(c.dx, c.dy + s), paint);
+  }
+
+  void _drawShortLine(Canvas canvas, Offset c, double len, Paint paint) {
+    canvas.drawLine(
+      Offset(c.dx - len / 2, c.dy),
+      Offset(c.dx + len / 2, c.dy),
+      paint,
+    );
+  }
+
+  void _drawLeaf(Canvas canvas, Offset c, double s, Paint stroke, Paint fill) {
+    final path = Path()
+      ..moveTo(c.dx, c.dy - s)
+      ..quadraticBezierTo(c.dx + s * 0.8, c.dy - s * 0.1, c.dx, c.dy + s)
+      ..quadraticBezierTo(c.dx - s * 0.8, c.dy - s * 0.1, c.dx, c.dy - s)
+      ..close();
+
+    canvas.drawPath(path, fill);
+    canvas.drawPath(path, stroke);
+    canvas.drawLine(
+      Offset(c.dx, c.dy - s),
+      Offset(c.dx, c.dy + s * 0.8),
+      stroke,
+    );
+  }
+
+  void _drawButterfly(Canvas canvas, Offset c, double s, Paint paint) {
+    final leftTop = Rect.fromCenter(
+      center: Offset(c.dx - s * 0.55, c.dy - s * 0.25),
+      width: s * 1.1,
+      height: s * 1.4,
+    );
+    final rightTop = Rect.fromCenter(
+      center: Offset(c.dx + s * 0.55, c.dy - s * 0.25),
+      width: s * 1.1,
+      height: s * 1.4,
+    );
+    final leftBottom = Rect.fromCenter(
+      center: Offset(c.dx - s * 0.45, c.dy + s * 0.6),
+      width: s * 0.9,
+      height: s * 1.0,
+    );
+    final rightBottom = Rect.fromCenter(
+      center: Offset(c.dx + s * 0.45, c.dy + s * 0.6),
+      width: s * 0.9,
+      height: s * 1.0,
+    );
+
+    canvas.drawOval(leftTop, paint);
+    canvas.drawOval(rightTop, paint);
+    canvas.drawOval(leftBottom, paint);
+    canvas.drawOval(rightBottom, paint);
+
+    canvas.drawLine(
+      Offset(c.dx, c.dy - s * 0.9),
+      Offset(c.dx, c.dy + s * 1.0),
+      paint,
+    );
+  }
+
+  void _drawSpiral(Canvas canvas, Offset c, double s, Paint paint) {
+    final path = Path();
+    double r = 2;
+    path.moveTo(c.dx, c.dy);
+    for (double a = 0; a < 4.5 * pi; a += 0.22) {
+      r += 0.55;
+      path.lineTo(c.dx + cos(a) * r, c.dy + sin(a) * r);
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawFlower(Canvas canvas, Offset c, double s, Paint paint) {
+    for (int i = 0; i < 6; i++) {
+      final a = (pi * 2 / 6) * i;
+      final petalCenter = Offset(c.dx + cos(a) * s, c.dy + sin(a) * s);
+      canvas.drawOval(
+        Rect.fromCenter(center: petalCenter, width: s * 0.9, height: s * 1.4),
+        paint,
+      );
+    }
+    canvas.drawCircle(c, s * 0.35, paint);
+  }
+
+  void _drawMountain(Canvas canvas, Offset c, double s, Paint paint) {
+    final path = Path()
+      ..moveTo(c.dx - s, c.dy + s * 0.7)
+      ..lineTo(c.dx - s * 0.35, c.dy - s * 0.4)
+      ..lineTo(c.dx, c.dy + s * 0.2)
+      ..lineTo(c.dx + s * 0.35, c.dy - s * 0.2)
+      ..lineTo(c.dx + s, c.dy + s * 0.7);
+
+    canvas.drawPath(path, paint);
+    canvas.drawLine(
+      Offset(c.dx - s * 1.1, c.dy + s * 0.72),
+      Offset(c.dx + s * 1.1, c.dy + s * 0.72),
+      paint,
+    );
+  }
+
+  void _drawBotanicalSprout(Canvas canvas, Offset c, double s, Paint paint) {
+    final path = Path()
+      ..moveTo(c.dx, c.dy + s)
+      ..quadraticBezierTo(c.dx, c.dy + s * 0.1, c.dx, c.dy - s * 0.9)
+      ..moveTo(c.dx, c.dy)
+      ..quadraticBezierTo(
+        c.dx - s * 0.8,
+        c.dy - s * 0.2,
+        c.dx - s * 0.45,
+        c.dy - s * 0.95,
+      )
+      ..moveTo(c.dx, c.dy)
+      ..quadraticBezierTo(
+        c.dx + s * 0.8,
+        c.dy - s * 0.2,
+        c.dx + s * 0.45,
+        c.dy - s * 0.95,
+      );
+
+    canvas.drawPath(path, paint);
+  }
+
+  void _drawStar(Canvas canvas, Offset c, double s, Paint paint) {
+    final path = Path();
+    for (int i = 0; i < 5; i++) {
+      final outerA = -pi / 2 + (i * 2 * pi / 5);
+      final innerA = outerA + pi / 5;
+
+      final outer = Offset(c.dx + cos(outerA) * s, c.dy + sin(outerA) * s);
+      final inner = Offset(
+        c.dx + cos(innerA) * s * 0.45,
+        c.dy + sin(innerA) * s * 0.45,
+      );
+
+      if (i == 0) {
+        path.moveTo(outer.dx, outer.dy);
+      } else {
+        path.lineTo(outer.dx, outer.dy);
+      }
+      path.lineTo(inner.dx, inner.dy);
+    }
+    path.close();
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant _PaperPainter oldDelegate) =>
-      oldDelegate.notebookLines != notebookLines ||
-      oldDelegate.dotted != dotted ||
-      oldDelegate.leaves != leaves ||
-      oldDelegate.backgroundColor != backgroundColor;
+  bool shouldRepaint(covariant _PaperBackgroundPainter oldDelegate) {
+    return oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.notebookLines != notebookLines ||
+        oldDelegate.leaves != leaves;
+  }
 }

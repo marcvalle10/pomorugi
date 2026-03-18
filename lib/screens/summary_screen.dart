@@ -28,12 +28,13 @@ class SummaryScreen extends StatelessWidget {
     const coolTeal = Color(0xFF2D9DA6);
     const sunnyYellow = Color(0xFFFFD93D);
     const softPurple = Color(0xFFA888FF);
+    const softPaper = Color(0xFFFFF8E7);
 
     return Scaffold(
       body: PaperBackground(
-        backgroundColor: const Color(0xFFFFF8E7),
+        backgroundColor: softPaper,
         notebookLines: false,
-        dotted: true,
+        leaves: false,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
@@ -44,11 +45,11 @@ class SummaryScreen extends StatelessWidget {
                     const SizedBox(width: 40),
                     const Spacer(),
                     const Text(
-                      'Session Summary',
+                      'Resumen de sesión',
                       style: TextStyle(
                         fontFamily: 'Caveat',
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 24,
                         color: ink,
                       ),
                     ),
@@ -71,15 +72,19 @@ class SummaryScreen extends StatelessWidget {
                     const Positioned(
                       left: 18,
                       top: 8,
-                      child: Icon(Icons.star, color: sunnyYellow, size: 34),
+                      child: Icon(
+                        Icons.star_rounded,
+                        color: sunnyYellow,
+                        size: 34,
+                      ),
                     ),
                     const Positioned(
-                      right: 36,
-                      bottom: 28,
+                      right: 30,
+                      bottom: 26,
                       child: Icon(
                         Icons.auto_awesome,
                         color: coolTeal,
-                        size: 28,
+                        size: 26,
                       ),
                     ),
                     Container(
@@ -89,6 +94,13 @@ class SummaryScreen extends StatelessWidget {
                         color: const Color(0xFFFFF3B6),
                         shape: BoxShape.circle,
                         border: Border.all(color: ink, width: 3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
                       child: const Center(
                         child: Icon(
@@ -125,7 +137,7 @@ class SummaryScreen extends StatelessWidget {
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w500,
                     fontSize: 18,
-                    color: ink.withOpacity(0.55),
+                    color: ink.withOpacity(0.62),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -142,7 +154,7 @@ class SummaryScreen extends StatelessWidget {
                 const SizedBox(height: 26),
                 SketchCard(
                   rotation: -0.008,
-                  color: Colors.white.withOpacity(0.92),
+                  color: Colors.white.withOpacity(0.93),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 10,
@@ -152,21 +164,21 @@ class SummaryScreen extends StatelessWidget {
                       _summaryRow(
                         icon: Icons.loop_rounded,
                         iconColor: coolTeal,
-                        label: 'Total Cycles',
+                        label: 'Ciclos completados',
                         value: '${summary.completedCycles}',
                       ),
                       _divider(),
                       _summaryRow(
                         icon: Icons.timer_outlined,
                         iconColor: warmRed,
-                        label: 'Total Work',
+                        label: 'Tiempo de trabajo',
                         value: summary.format(summary.totalFocusTime),
                       ),
                       _divider(),
                       _summaryRow(
                         icon: Icons.free_breakfast_outlined,
                         iconColor: softPurple,
-                        label: 'Total Break',
+                        label: 'Tiempo de descanso',
                         value: summary.format(summary.totalBreakTime),
                       ),
                     ],
@@ -185,6 +197,7 @@ class SummaryScreen extends StatelessWidget {
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFFFA9324),
                       foregroundColor: ink,
+                      elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       side: const BorderSide(color: ink, width: 2.5),
                       shape: RoundedRectangleBorder(
@@ -205,9 +218,13 @@ class SummaryScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: const [
-                    Icon(Icons.brush_outlined, color: coolTeal, size: 34),
-                    Icon(Icons.gesture_outlined, color: softPurple, size: 34),
-                    Icon(Icons.palette_outlined, color: sunnyYellow, size: 34),
+                    Icon(Icons.eco_outlined, color: coolTeal, size: 32),
+                    Icon(
+                      Icons.auto_fix_high_outlined,
+                      color: softPurple,
+                      size: 32,
+                    ),
+                    Icon(Icons.wb_sunny_outlined, color: sunnyYellow, size: 32),
                   ],
                 ),
               ],
@@ -239,11 +256,11 @@ class SummaryScreen extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
-                color: const Color(0xFF1C140D).withOpacity(0.55),
+                color: Color(0xFF6A625B),
               ),
             ),
           ),

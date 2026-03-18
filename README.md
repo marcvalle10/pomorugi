@@ -3,10 +3,21 @@
 Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro interactivo y dibujo procedural tipo sketch. El objetivo es mejorar productividad y descanso con una UI estilo cuaderno, animaciones suaves y controles claros.
 
 <br>
-
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Setup Screen</b><br><br>
 <img src="assets/images/logo_unison.png" width="120" alt="Unison Logo"/>
-
+</td>
+<td align="center">
+<b>Timer Screen</b><br><br>
 <img src="assets/icons/icon_app.png" width="120" alt="PomoRugi Logo"/>
+</td>
+</tr>
+</table>
+</div>
+
 <br><br>
 
 ---
