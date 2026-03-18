@@ -7,11 +7,11 @@ Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro inte
 <table>
 <tr>
 <td align="center">
-<b>Setup Screen</b><br><br>
+<b>Unison Logo</b><br><br>
 <img src="assets/images/logo_unison.png" width="120" alt="Unison Logo"/>
 </td>
 <td align="center">
-<b>Timer Screen</b><br><br>
+<b>PomoRugi Logo</b><br><br>
 <img src="assets/icons/icon_app.png" width="120" alt="PomoRugi Logo"/>
 </td>
 </tr>
@@ -74,18 +74,18 @@ Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro inte
 <img src="assets/icons/icon_app.png" width="140" alt="App Icon" />
 </div>
 
-## Instalarción
+## Instalación
 
 <div align="center">
 <table>
 <tr>
 <td align="center">
-<b>Setup Screen</b><br><br>
-<img src="assets/PomoRugi/insta_i.png" width="220" alt="Setup Screen"/>
+<b>Instalación</b><br><br>
+<img src="assets/PomoRugi/insta_i.png" width="220" alt="Instalación"/>
 </td>
 <td align="center">
-<b>Timer Screen</b><br><br>
-<img src="assets/PomoRugi/insta_acabo.png" width="220" alt="Timer Screen"/>
+<b>Instalación</b><br><br>
+<img src="assets/PomoRugi/insta_acabo.png" width="220" alt="Instalación"/>
 </td>
 </tr>
 </table>
@@ -112,7 +112,7 @@ Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro inte
 <table>
 <tr>
 <td align="center">
-<b>Setup Screen</b><br><br>
+<b>Timer Screen</b><br><br>
 <img src="assets/PomoRugi/timer_sample_2.png" width="220" alt="Timer Screen"/>
 </td>
 <td align="center">
@@ -131,7 +131,7 @@ Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro inte
 <img src="assets/PomoRugi/timer_sample_4.png" width="220" alt="Timer Screen"/>
 </td>
 <td align="center">
-<b>Timer Screen</b><br><br>
+<b>Ejemplo Alerta</b><br><br>
 <img src="assets/PomoRugi/alerta_1.png" width="220" alt="Ejemplo Alerta"/>
 </td>
 </tr>
@@ -142,11 +142,11 @@ Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro inte
 <table>
 <tr>
 <td align="center">
-<b>Setup Screen</b><br><br>
+<b>Ejemplo Alerta</b><br><br>
 <img src="assets/PomoRugi/alerta_2.png" width="220" alt="Ejemplo Alerta"/>
 </td>
 <td align="center">
-<b>Timer Screen</b><br><br>
+<b>Ejemplo Alerta</b><br><br>
 <img src="assets/PomoRugi/alerta_3.png" width="220" alt="Ejemplo Alerta"/>
 </td>
 </tr>
@@ -157,11 +157,11 @@ Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro inte
 <table>
 <tr>
 <td align="center">
-<b>Setup Screen</b><br><br>
+<b>Ejemplo Alerta</b><br><br>
 <img src="assets/PomoRugi/alerta_4.png" width="220" alt="Ejemplo Alerta"/>
 </td>
 <td align="center">
-<b>Timer Screen</b><br><br>
+<b>Ejemplo Alerta</b><br><br>
 <img src="assets/PomoRugi/alerta_5.png" width="220" alt="Ejemplo Alerta"/>
 </td>
 </tr>
@@ -172,11 +172,11 @@ Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro inte
 <table>
 <tr>
 <td align="center">
-<b>Setup Screen</b><br><br>
+<b>Ejemplo Alerta</b><br><br>
 <img src="assets/PomoRugi/alerta_6.png" width="220" alt="Ejemplo Alerta"/>
 </td>
 <td align="center">
-<b>Timer Screen</b><br><br>
+<b>Ejemplo Alerta</b><br><br>
 <img src="assets/PomoRugi/alerta_7.png" width="220" alt="Ejemplo Alerta"/>
 </td>
 </tr>
