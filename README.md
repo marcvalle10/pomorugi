@@ -85,7 +85,115 @@ lib/
 
 ---
 
-## 🧩 Flujo principal de la app
+## � Descripción detallada de clases y componentes
+
+### controllers/pomodoro_controller.dart
+
+- Clase: `PomodoroController` (extiende `ChangeNotifier`)
+- Propiedades claves:
+  - `PomodoroConfig config`, `SessionPhase phase`, `Duration remaining`, `int currentCycle`, `bool isRunning`
+  - Acumuladores: `_accFocus`, `_accBreak`
+  - Dibujo procedural: `_pattern` (`SketchPattern`)
+- Funciones:
+  - `start()`, `pause()`, `toggle()`
+  - `skipPhase()`, `resetSession()`, `buildSummary()`
+  - `_tick()`, `_advancePhase()`, `_registerCompletedSecond()`
+- Métodos de UI: `formattedRemaining`, `phaseProgress`, `sketchRevealProgress`, `chaosVisibility`, `statusLabel`, `randomBreakMessage()`
+
+### models/pomodoro_config.dart
+
+- Clase: `PomodoroConfig`
+- Valores: `workMinutes`, `breakMinutes`, `totalCycles`
+- Getters: `workDuration`, `breakDuration`
+
+### models/session_phase.dart
+
+- `enum SessionPhase { setup, focus, shortBreak, summary }`
+
+### models/session_summary.dart
+
+- Clase: `SessionSummary` con datos finales de sesión
+- Método `format(Duration)` da formato de string amigable
+
+### screens/setup_screen.dart
+
+- Configuración inicial con sliders y botones:
+  - `work`, `shortBreak`, `cycles`
+  - `COMENZAR` crea `PomodoroConfig` y navega a `TimerScreen`
+- Elementos UI: `S ketchCard` con datos de equipo, controles de slider, botones +/-
+
+### screens/timer_screen.dart
+
+- Muestra estado actual y controla el ciclo con `Provider<PomodoroController>`
+- Dibuja progreso con `SketchProgressPainter` y muestra timer
+- Botones interactivos: Pausa/Reanuda, Saltar, Salir sesión
+- Transición automática a `SummaryScreen` al completar ciclos
+
+### screens/summary_screen.dart
+
+- Muestra mensaje motivacional según ciclos completados
+- Estadísticas de sesión y resumen con botón `Nueva Sesión`
+
+### services/sketch_generator.dart
+
+- Generador de patrones aleatorios para el dibujo procedural
+- Define tipos de raster/stroke usados por `SketchProgressPainter`
+
+### widgets/paper_background.dart
+
+- `PaperBackground` con líneas de cuaderno, puntos y selected leaves
+
+### widgets/sketch_card.dart
+
+- `SketchCard` con borde pintado y sombra
+
+### widgets/sketch_progress_painter.dart
+
+- `SketchProgressPainter` con anillo, cuerpo, cabeza animada y dibujo "reveal"
+
+---
+
+## 🖼 Imágenes de la aplicación
+
+### Interfaz principal y navegación
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Setup Screen</b><br><br>
+<img src="assets/images/setup_sample.png" width="220" alt="Setup Screen"/>
+</td>
+<td align="center">
+<b>Timer Screen</b><br><br>
+<img src="assets/images/timer_sample.png" width="220" alt="Timer Screen"/>
+</td>
+</tr>
+</table>
+</div>
+
+### Resultados y resumen
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Summary Screen</b><br><br>
+<img src="assets/images/summary_sample.png" width="220" alt="Summary Screen"/>
+</td>
+</tr>
+</table>
+</div>
+
+### Icono de la app
+
+<div align="center">
+<img src="assets/images/logo_unison.png" width="140" alt="App Icon" />
+</div>
+
+---
+
+## �🧩 Flujo principal de la app
 
 1. Usuario abre la app en `SetupScreen`.
 2. Ajusta `workMinutes`, `breakMinutes`, `totalCycles`.
@@ -147,4 +255,3 @@ build/app/outputs/flutter-apk/app-release.apk
 - El nombre interno de la app en UI es `PomoRugi`.
 - El estilo visual se basa en colores amigables, fuentes manuscritas y diseño inspirado en cuaderno.
 - Se incluyen íconos SVG / `.png` en `assets/images`, uso de `assets/images/logo_unison.png`.
-
