@@ -27,6 +27,7 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   bool _manualPause = false;
   bool _appInBackground = false;
   bool _navigatingToSummary = false;
+  bool _showingExitDialog = false;
 
   SessionPhase? _lastPhase;
 
@@ -468,15 +469,20 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _confirmExit() async {
-    final controller = context.read<PomodoroController>();
+    if (_showingExitDialog || !mounted) return;
 
-    _manualPause = true;
-    controller.pause();
-    _ensurePauseReminderLoop();
-    await _syncStatusNotification();
+    _showingExitDialog = true;
+
+    final controller = context.read<PomodoroController>();
+    final wasRunning = controller.isRunning;
+
+    if (wasRunning) {
+      controller.pause();
+    }
 
     final exit = await showDialog<bool>(
       context: context,
+      barrierDismissible: true,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFFFFF8E7),
         title: const Text(
@@ -500,20 +506,28 @@ class _TimerScreenState extends State<TimerScreen> with WidgetsBindingObserver {
       ),
     );
 
+    _showingExitDialog = false;
+
     if (!mounted) return;
 
     if (exit == true) {
+      _manualPause = false;
       _cancelPauseReminderLoop();
       await NotificationService.instance.cancelAllSessionNotifications();
       Navigator.of(context).pop();
-    } else {
-      _manualPause = false;
-      _cancelPauseReminderLoop();
+      return;
+    }
+
+    if (wasRunning && controller.phase != SessionPhase.summary) {
       controller.start();
-      await _syncStatusNotification();
-      if (mounted) {
-        setState(() {});
-      }
+    }
+
+    _manualPause = false;
+    _cancelPauseReminderLoop();
+    await _syncStatusNotification();
+
+    if (mounted) {
+      setState(() {});
     }
   }
 }

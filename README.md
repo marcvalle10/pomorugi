@@ -192,6 +192,10 @@ Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro inte
 <b>Summary Screen</b><br><br>
 <img src="assets/PomoRugi/summary_sample.png" width="220" alt="Summary Screen"/>
 </td>
+<td align="center">
+<b>Abandonar sesión</b><br><br>
+<img src="assets/PomoRugi/close_sesion.png" width="220" alt="close sesion"/>
+</td>
 </tr>
 </table>
 </div>
