@@ -98,7 +98,22 @@ class _PaperPainter extends CustomPainter {
       ..moveTo(size.width * .08, size.height * .78)
       ..quadraticBezierTo(size.width * .11, size.height * .76, size.width * .13, size.height * .81)
       ..moveTo(size.width * .10, size.height * .74)
-      ..lineTo(size.width * .10, size.height * .84);
+      ..lineTo(size.width * .10, size.height * .84)
+      ..moveTo(size.width * .22, size.height * .22)
+      ..lineTo(size.width * .25, size.height * .22)
+      ..moveTo(size.width * .235, size.height * .205)
+      ..lineTo(size.width * .235, size.height * .235)
+      ..moveTo(size.width * .72, size.height * .26)
+      ..lineTo(size.width * .76, size.height * .30)
+      ..lineTo(size.width * .72, size.height * .34)
+      ..lineTo(size.width * .68, size.height * .30)
+      ..close()
+      ..moveTo(size.width * .76, size.height * .70)
+      ..quadraticBezierTo(size.width * .79, size.height * .67, size.width * .83, size.height * .70)
+      ..quadraticBezierTo(size.width * .79, size.height * .73, size.width * .76, size.height * .70)
+      ..moveTo(size.width * .14, size.height * .58)
+      ..quadraticBezierTo(size.width * .18, size.height * .54, size.width * .21, size.height * .58)
+      ..quadraticBezierTo(size.width * .18, size.height * .62, size.width * .14, size.height * .58);
     canvas.drawPath(doodle, doodlePaint);
 
     if (leaves) {

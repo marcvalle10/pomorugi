@@ -205,7 +205,6 @@ class SummaryScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: const [
-                    Icon(Icons.edit_note, color: warmRed, size: 36),
                     Icon(Icons.brush_outlined, color: coolTeal, size: 34),
                     Icon(Icons.gesture_outlined, color: softPurple, size: 34),
                     Icon(Icons.palette_outlined, color: sunnyYellow, size: 34),

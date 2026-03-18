@@ -38,34 +38,35 @@ class SketchProgressPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     canvas.drawArc(ringRect, 0, pi * 2, false, guide);
 
+    _paintDecorations(canvas, center, radius);
     _paintBodySegments(canvas, center, radius, progress);
     _paintHead(canvas, center, radius, progress);
-    _paintDecorations(canvas, center, radius);
     _paintSketch(canvas, Rect.fromCircle(center: center, radius: radius - 30));
   }
 
   void _paintBodySegments(Canvas canvas, Offset center, double radius, double progress) {
-    final segmentCount = max(3, (progress * 16).ceil());
-    final segmentSpacing = 0.17;
-    final segmentSize = isBreak ? 16.0 : 17.5;
+    final segmentSpacing = 0.162;
+    final baseSegmentSize = isBreak ? 15.6 : 17.0;
+    final maxSegments = 34;
+    final bodySegments = (progress * maxSegments).floor().clamp(0, maxSegments);
+    final headAngle = -pi / 2 + (pi * 2 * progress);
 
-    for (int i = 0; i < segmentCount; i++) {
-      final t = (progress - (i * 0.03)).clamp(0.0, 1.0);
-      final angle = -pi / 2 + (pi * 2 * t) - (i * segmentSpacing);
+    for (int i = 0; i < bodySegments; i++) {
+      final angle = headAngle - ((i + 1) * segmentSpacing);
       final offset = Offset(
         center.dx + cos(angle) * radius,
         center.dy + sin(angle) * radius,
       );
-      final wobble = sin(i * 0.65 + progress * pi * 5) * 0.8;
-      final rect = Rect.fromCenter(
-        center: offset,
-        width: segmentSize + max(0, 7 - i * 0.5),
-        height: segmentSize - (i * 0.45) + wobble,
-      );
+
+      final taper = (1 - (i / max(1, bodySegments))).clamp(0.0, 1.0);
+      final wobble = sin(i * 0.55 + progress * pi * 4) * 0.45;
+      final width = baseSegmentSize + 5.8 * taper;
+      final height = baseSegmentSize - 0.9 + (1.7 * taper) + wobble;
+
       final color = Color.lerp(
             isBreak ? breakTeal : focusPink,
             isBreak ? const Color(0xFFA9EFE6) : progressOrange,
-            i / max(1, segmentCount - 1),
+            i / max(1, bodySegments),
           ) ??
           (isBreak ? breakTeal : focusPink);
 
@@ -74,21 +75,48 @@ class SketchProgressPainter extends CustomPainter {
         ..color = ink.withOpacity(0.86)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.8;
+      final shadow = Paint()
+        ..color = Colors.black.withOpacity(0.08)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.4);
 
       canvas.save();
       canvas.translate(offset.dx, offset.dy);
       canvas.rotate(angle + pi / 2 + wobble * 0.02);
-      final rrect = RRect.fromRectAndRadius(
-        Rect.fromCenter(center: Offset.zero, width: rect.width, height: rect.height),
-        const Radius.circular(50),
-      );
-      canvas.drawRRect(rrect, fill);
-      canvas.drawRRect(rrect, outline);
 
-      if (i > 0 && i < segmentCount - 1) {
-        final spotPaint = Paint()..color = Colors.white.withOpacity(0.18);
-        canvas.drawCircle(const Offset(0, 0), 2.2, spotPaint);
+      final segmentRect = Rect.fromCenter(
+        center: Offset.zero,
+        width: width,
+        height: height,
+      );
+      final segment = RRect.fromRectAndRadius(segmentRect, const Radius.circular(50));
+      canvas.drawRRect(segment.shift(const Offset(0, 1.2)), shadow);
+      canvas.drawRRect(segment, fill);
+      canvas.drawRRect(segment, outline);
+
+      final highlight = Paint()..color = Colors.white.withOpacity(0.16);
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(-width * 0.1, -height * 0.05),
+          width: width * 0.34,
+          height: height * 0.28,
+        ),
+        highlight,
+      );
+
+      if (i < bodySegments - 1) {
+        final connector = Paint()
+          ..color = color.withOpacity(0.72)
+          ..style = PaintingStyle.fill;
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(0, height * 0.5 + 1.0),
+            width: width * 0.34,
+            height: height * 0.22,
+          ),
+          connector,
+        );
       }
+
       canvas.restore();
     }
   }
@@ -149,17 +177,42 @@ class SketchProgressPainter extends CustomPainter {
     final decor = Paint()
       ..color = ink.withOpacity(0.06)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
-    final sparkle = Path()
-      ..moveTo(center.dx - radius * 0.9, center.dy - radius * 0.45)
-      ..lineTo(center.dx - radius * 0.82, center.dy - radius * 0.35)
-      ..moveTo(center.dx - radius * 0.86, center.dy - radius * 0.50)
-      ..lineTo(center.dx - radius * 0.86, center.dy - radius * 0.30)
-      ..moveTo(center.dx + radius * 0.65, center.dy + radius * 0.62)
-      ..lineTo(center.dx + radius * 0.78, center.dy + radius * 0.50)
-      ..moveTo(center.dx + radius * 0.72, center.dy + radius * 0.42)
-      ..lineTo(center.dx + radius * 0.72, center.dy + radius * 0.58);
-    canvas.drawPath(sparkle, decor);
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+
+    final star = Path()
+      ..moveTo(center.dx - radius * 0.82, center.dy - radius * 0.18)
+      ..lineTo(center.dx - radius * 0.70, center.dy - radius * 0.26)
+      ..lineTo(center.dx - radius * 0.60, center.dy - radius * 0.14)
+      ..lineTo(center.dx - radius * 0.74, center.dy - radius * 0.10)
+      ..close();
+    canvas.drawPath(star, decor);
+
+    final swirl = Path()
+      ..moveTo(center.dx + radius * 0.62, center.dy - radius * 0.08)
+      ..quadraticBezierTo(center.dx + radius * 0.80, center.dy - radius * 0.22, center.dx + radius * 0.84, center.dy - radius * 0.02)
+      ..quadraticBezierTo(center.dx + radius * 0.84, center.dy + radius * 0.16, center.dx + radius * 0.66, center.dy + radius * 0.12)
+      ..quadraticBezierTo(center.dx + radius * 0.58, center.dy + radius * 0.08, center.dx + radius * 0.62, center.dy - radius * 0.01);
+    canvas.drawPath(swirl, decor);
+
+    final diamond = Path()
+      ..moveTo(center.dx + radius * 0.32, center.dy + radius * 0.60)
+      ..lineTo(center.dx + radius * 0.46, center.dy + radius * 0.70)
+      ..lineTo(center.dx + radius * 0.33, center.dy + radius * 0.80)
+      ..lineTo(center.dx + radius * 0.20, center.dy + radius * 0.70)
+      ..close();
+    canvas.drawPath(diamond, decor);
+
+    canvas.drawLine(
+      Offset(center.dx - radius * 0.98, center.dy + radius * 0.70),
+      Offset(center.dx - radius * 0.88, center.dy + radius * 0.78),
+      decor,
+    );
+    canvas.drawLine(
+      Offset(center.dx - radius * 0.88, center.dy + radius * 0.70),
+      Offset(center.dx - radius * 0.98, center.dy + radius * 0.78),
+      decor,
+    );
   }
 
   void _paintSketch(Canvas canvas, Rect rect) {

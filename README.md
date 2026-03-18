@@ -4,8 +4,9 @@ Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro inte
 
 <br>
 
-<img src="assets/images/logo_unison.png" width="120" alt="PomoRugi Logo"/>
+<img src="assets/images/logo_unison.png" width="120" alt="Unison Logo"/>
 
+<img src="assets/icons/icon_app.png" width="120" alt="PomoRugi Logo"/>
 <br><br>
 
 ---
@@ -51,6 +52,138 @@ Aplicación móvil desarrollada en **Flutter** con un temporizador Pomodoro inte
 
 - Git
 - GitHub
+
+---
+
+## 🖼 Imágenes de la aplicación
+
+### Icono de la app
+
+<div align="center">
+<img src="assets/icons/icon_app.png" width="140" alt="App Icon" />
+</div>
+
+## Instalarción
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Setup Screen</b><br><br>
+<img src="assets/PomoRugi/insta_i.png" width="220" alt="Setup Screen"/>
+</td>
+<td align="center">
+<b>Timer Screen</b><br><br>
+<img src="assets/PomoRugi/insta_acabo.png" width="220" alt="Timer Screen"/>
+</td>
+</tr>
+</table>
+</div>
+
+### Interfaz principal y navegación
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Setup Screen</b><br><br>
+<img src="assets/PomoRugi/setup_sample.png" width="220" alt="Setup Screen"/>
+</td>
+<td align="center">
+<b>Timer Screen</b><br><br>
+<img src="assets/PomoRugi/timer_sample_1.png" width="220" alt="Timer Screen"/>
+</td>
+</tr>
+</table>
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Setup Screen</b><br><br>
+<img src="assets/PomoRugi/timer_sample_2.png" width="220" alt="Timer Screen"/>
+</td>
+<td align="center">
+<b>Timer Screen</b><br><br>
+<img src="assets/PomoRugi/timer_sample_3.png" width="220" alt="Timer Screen"/>
+</td>
+</tr>
+</table>
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Timer Screen</b><br><br>
+<img src="assets/PomoRugi/timer_sample_4.png" width="220" alt="Timer Screen"/>
+</td>
+<td align="center">
+<b>Timer Screen</b><br><br>
+<img src="assets/PomoRugi/alerta_1.png" width="220" alt="Ejemplo Alerta"/>
+</td>
+</tr>
+</table>
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Setup Screen</b><br><br>
+<img src="assets/PomoRugi/alerta_2.png" width="220" alt="Ejemplo Alerta"/>
+</td>
+<td align="center">
+<b>Timer Screen</b><br><br>
+<img src="assets/PomoRugi/alerta_3.png" width="220" alt="Ejemplo Alerta"/>
+</td>
+</tr>
+</table>
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Setup Screen</b><br><br>
+<img src="assets/PomoRugi/alerta_4.png" width="220" alt="Ejemplo Alerta"/>
+</td>
+<td align="center">
+<b>Timer Screen</b><br><br>
+<img src="assets/PomoRugi/alerta_5.png" width="220" alt="Ejemplo Alerta"/>
+</td>
+</tr>
+</table>
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Setup Screen</b><br><br>
+<img src="assets/PomoRugi/alerta_6.png" width="220" alt="Ejemplo Alerta"/>
+</td>
+<td align="center">
+<b>Timer Screen</b><br><br>
+<img src="assets/PomoRugi/alerta_7.png" width="220" alt="Ejemplo Alerta"/>
+</td>
+</tr>
+</table>
+</div>
+
+### Resultados y resumen
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+<b>Summary Screen</b><br><br>
+<img src="assets/PomoRugi/summary_sample.png" width="220" alt="Summary Screen"/>
+</td>
+</tr>
+</table>
+</div>
 
 ---
 
@@ -153,44 +286,6 @@ lib/
 
 ---
 
-## 🖼 Imágenes de la aplicación
-
-### Interfaz principal y navegación
-
-<div align="center">
-<table>
-<tr>
-<td align="center">
-<b>Setup Screen</b><br><br>
-<img src="assets/images/setup_sample.png" width="220" alt="Setup Screen"/>
-</td>
-<td align="center">
-<b>Timer Screen</b><br><br>
-<img src="assets/images/timer_sample.png" width="220" alt="Timer Screen"/>
-</td>
-</tr>
-</table>
-</div>
-
-### Resultados y resumen
-
-<div align="center">
-<table>
-<tr>
-<td align="center">
-<b>Summary Screen</b><br><br>
-<img src="assets/images/summary_sample.png" width="220" alt="Summary Screen"/>
-</td>
-</tr>
-</table>
-</div>
-
-### Icono de la app
-
-<div align="center">
-<img src="assets/images/logo_unison.png" width="140" alt="App Icon" />
-</div>
-
 ---
 
 ## �🧩 Flujo principal de la app
@@ -239,8 +334,6 @@ Archivo generado:
 ```
 build/app/outputs/flutter-apk/app-release.apk
 ```
-
----
 
 ## 🧪 Estado actual / próximos pasos
 

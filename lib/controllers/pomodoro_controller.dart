@@ -74,7 +74,8 @@ class PomodoroController extends ChangeNotifier {
   }
 
   void start() {
-    if (_isRunning) return;
+    if (_isRunning || _phase == SessionPhase.summary) return;
+    _ticker?.cancel();
     _isRunning = true;
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
     notifyListeners();
@@ -144,12 +145,19 @@ class PomodoroController extends ChangeNotifier {
 
   void _advancePhase() {
     _ticker?.cancel();
+    _ticker = null;
     _isRunning = false;
 
     if (_phase == SessionPhase.focus) {
-      _phase = SessionPhase.shortBreak;
-      _remaining = config.breakDuration;
-      _phaseTotal = config.breakDuration;
+      if (_currentCycle >= config.totalCycles) {
+        _phase = SessionPhase.summary;
+        _remaining = Duration.zero;
+        _phaseTotal = Duration.zero;
+      } else {
+        _phase = SessionPhase.shortBreak;
+        _remaining = config.breakDuration;
+        _phaseTotal = config.breakDuration;
+      }
     } else if (_currentCycle < config.totalCycles) {
       _currentCycle += 1;
       _phase = SessionPhase.focus;
@@ -161,6 +169,7 @@ class PomodoroController extends ChangeNotifier {
       _remaining = Duration.zero;
       _phaseTotal = Duration.zero;
     }
+
     notifyListeners();
   }
 

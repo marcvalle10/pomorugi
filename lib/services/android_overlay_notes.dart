@@ -1,18 +1,14 @@
-/// Integración sugerida para Android overlay.
+/// Estado actual:
+/// - El proyecto ya genera notificaciones visibles en la bandeja de Android
+///   cuando cambia de enfoque a descanso, de descanso a enfoque, al terminar
+///   toda la sesión y cuando permanece pausado demasiado tiempo.
+/// - Eso cubre lo que se ve en el panel de notificaciones del teléfono.
 ///
-/// Plugin recomendado: flutter_overlay_window
-/// AndroidManifest.xml:
-/// <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-///
-/// Flujo real:
-/// 1. Pedir permiso con FlutterOverlayWindow.isPermissionGranted()
-/// 2. Si no existe, abrir settings del sistema.
-/// 3. Mostrar bubble flotante con progreso serializado.
-/// 4. Cuando se pausa la sesión, congelar también el frame del tomate/gusano.
-///
-/// No lo dejé cableado en este scaffold por una razón práctica:
-/// el overlay ya entra en integración nativa y servicio en background,
-/// no solo UI Flutter. Meterlo a medias te deja un proyecto inestable.
+/// Overlay flotante real sobre otras apps:
+/// - Sigue requiriendo integrar flutter_overlay_window con permiso
+///   SYSTEM_ALERT_WINDOW y un entrypoint de overlay.
+/// - Esa parte no queda 100% funcional solo editando lib/; también exige
+///   cambios en AndroidManifest.xml y pruebas en dispositivo real.
 class AndroidOverlayNotes {
   static const manifestPermission = 'SYSTEM_ALERT_WINDOW';
 }
